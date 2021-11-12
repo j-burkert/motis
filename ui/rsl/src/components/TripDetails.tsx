@@ -2,6 +2,7 @@ import React, { useState } from "react";
 
 import { TripId } from "../api/protocol/motis";
 import { PaxMonEdgeLoadInfoWithStats } from "../data/loadInfo";
+import BarChart from "./BarChart";
 
 import TripLoadForecastChart from "./TripLoadForecastChart";
 import TripSectionDetails from "./TripSectionDetails";
@@ -16,6 +17,9 @@ function TripDetails({ tripId }: TripDetailsProps): JSX.Element {
 
   return (
     <div>
+      <BarChart
+        tripId={tripId}
+      />
       <TripLoadForecastChart
         tripId={tripId}
         mode="Interactive"

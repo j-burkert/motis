@@ -40,3 +40,4 @@ callgrind.out.*
 *.callgrind
 /.clangd
 /compile_commands.json
+ui/rsl/.vscode/launch.json
