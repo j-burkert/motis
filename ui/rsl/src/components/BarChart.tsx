@@ -5,6 +5,12 @@ import { useAtom } from "jotai";
 import { TripId } from "../api/protocol/motis";
 import { universeAtom } from "../data/simulation";
 import { addEdgeStatistics } from "../util/statistics";
+import Timeline from "./Timeline";
+import Bars from "./Bars";
+import { PaxMonEdgeLoadInfoWithStats } from "../data/loadInfo";
+import {
+  formatLongDateTime,
+} from "../util/dateFormat";
 
 import {
   queryKeys,
@@ -12,10 +18,9 @@ import {
   usePaxMonStatusQuery,
 } from "../api/paxmon";
 
-import BarGroup from "./BarGroup";
-
 type TripLoadChartProps = {
   tripId: TripId;
+  onSectionClick?: (e: PaxMonEdgeLoadInfoWithStats) => void;
 };
 
 async function loadAndProcessTripInfo(universe: number, trip: TripId) {
@@ -27,7 +32,7 @@ async function loadAndProcessTripInfo(universe: number, trip: TripId) {
   return addEdgeStatistics(tli);
 }
 
-function BarChart({ tripId } : TripLoadChartProps): JSX.Element | null {
+function BarChart({ tripId, onSectionClick } : TripLoadChartProps): JSX.Element | null {
 
   const [universe] = useAtom(universeAtom);
   const { data: status } = usePaxMonStatusQuery();
@@ -53,39 +58,64 @@ function BarChart({ tripId } : TripLoadChartProps): JSX.Element | null {
   }
 
   const edges = data.edges;
-
-  const maxPax = edges.reduce((max, ef) => Math.max(max, ef.max_pax || 0), 0);
-  const maxCapacity = edges.reduce(
-    (max, ef) => (ef.capacity ? Math.max(max, ef.capacity) : max),
-    0
-  );
-  const maxVal = Math.max(maxPax, maxCapacity) * 1.1;
-
-  const barGroupHeight = 50;
   const barGroupWidth = 1200;
-  const barChartHeight = 120 + edges.length * barGroupHeight;
+  const systemTime = status.system_time;
+
+  const names = [
+    ...new Set(
+      data.tsi.service_infos.map((si) =>
+        si.line ? `${si.train_nr} [${si.name}]` : si.name
+      )
+    ),
+  ];
+
+  const title = `${names.join(", ")} (${data.tsi.primary_station.name} - ${
+    data.tsi.secondary_station.name
+  }), Vorhersage vom ${formatLongDateTime(systemTime)}`;
+
+  const spacing = 40;
+  const chartHeight = spacing * edges.length + 10 + 30;
+
+  const clickRegions = onSectionClick
+  ? edges.map((e, id) => {
+      return (
+        <rect
+          key={id.toString()}
+          x="200"
+          y={id * spacing + 5 + 30}
+          width="200"
+          height={spacing}
+          fill="transparent"
+          className="cursor-pointer"
+          onClick={() => {
+            console.log(e);
+            onSectionClick(e);
+          }}
+        />
+      );
+    })
+  : [];
 
   return (
-    <svg
-      ref={svgEl2}
-      width={barGroupWidth}
-      height={barChartHeight}
-      className="mx-auto mt-2"
-    >
-      {edges.map((e, idx) => {
-        return(
-          <g key={idx} transform={`translate(0, ${idx * barGroupHeight})`}>
-            <BarGroup
-              barGroupWidth={barGroupWidth} 
-              barGroupHeight={barGroupHeight} 
-              edge={e} 
-              id={idx} 
-              maxVal={maxVal}
-            />
-          </g>
-        );
-      })}
-    </svg>
+    <div>
+
+      <p className="text-center font-bold">
+        {title}
+      </p>
+
+      <svg
+        ref={svgEl2}
+        width={barGroupWidth}
+        height={chartHeight}
+        className="mx-auto mt-2"
+      >
+        <g><Timeline edges = {data.edges} spacing = {spacing}/></g>
+        <g><Bars edges = {data.edges} spacing = {spacing}/></g>
+        <g><rect  strokeWidth="2" x="200" y="35" height={chartHeight-10-30} width="200" stroke="#333" fill="transparent"></rect></g>
+        <g>{clickRegions}</g>        
+      </svg> 
+
+    </div>
   );
 }
 

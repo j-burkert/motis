@@ -19,6 +19,7 @@ function TripDetails({ tripId }: TripDetailsProps): JSX.Element {
     <div>
       <BarChart
         tripId={tripId}
+        onSectionClick={setSelectedSection}
       />
       <TripLoadForecastChart
         tripId={tripId}
