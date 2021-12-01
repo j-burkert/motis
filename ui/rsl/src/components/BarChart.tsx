@@ -8,9 +8,7 @@ import { addEdgeStatistics } from "../util/statistics";
 import Timeline from "./Timeline";
 import Bars from "./Bars";
 import { PaxMonEdgeLoadInfoWithStats } from "../data/loadInfo";
-import {
-  formatLongDateTime,
-} from "../util/dateFormat";
+import { formatLongDateTime } from "../util/dateFormat";
 
 import {
   queryKeys,
@@ -32,13 +30,15 @@ async function loadAndProcessTripInfo(universe: number, trip: TripId) {
   return addEdgeStatistics(tli);
 }
 
-function BarChart({ tripId, onSectionClick } : TripLoadChartProps): JSX.Element | null {
-
+function BarChart({
+  tripId,
+  onSectionClick,
+}: TripLoadChartProps): JSX.Element | null {
   const [universe] = useAtom(universeAtom);
   const { data: status } = usePaxMonStatusQuery();
 
   const queryClient = useQueryClient();
-  const { data, isLoading, error} = useQuery(
+  const { data, isLoading, error } = useQuery(
     queryKeys.tripLoad(universe, tripId),
     async () => loadAndProcessTripInfo(universe, tripId),
     {
@@ -74,34 +74,31 @@ function BarChart({ tripId, onSectionClick } : TripLoadChartProps): JSX.Element 
   }), Vorhersage vom ${formatLongDateTime(systemTime)}`;
 
   const spacing = 40;
-  const chartHeight = spacing * edges.length + 10 + 30;
+  const chartHeight = spacing * edges.length + 10 + 30 + 5;
 
   const clickRegions = onSectionClick
-  ? edges.map((e, id) => {
-      return (
-        <rect
-          key={id.toString()}
-          x="200"
-          y={id * spacing + 5 + 30}
-          width="200"
-          height={spacing}
-          fill="transparent"
-          className="cursor-pointer"
-          onClick={() => {
-            console.log(e);
-            onSectionClick(e);
-          }}
-        />
-      );
-    })
-  : [];
+    ? edges.map((e, id) => {
+        return (
+          <rect
+            key={id.toString()}
+            x="200"
+            y={id * spacing + 5 + 30}
+            width="200"
+            height={spacing}
+            fill="transparent"
+            className="cursor-pointer hover:stroke-current text-black"
+            onClick={() => {
+              onSectionClick(e);
+            }}
+          >
+          </rect>
+        );
+      })
+    : [];
 
   return (
     <div>
-
-      <p className="text-center font-bold">
-        {title}
-      </p>
+      <p className="text-center font-bold">{title}</p>
 
       <svg
         ref={svgEl2}
@@ -109,12 +106,25 @@ function BarChart({ tripId, onSectionClick } : TripLoadChartProps): JSX.Element 
         height={chartHeight}
         className="mx-auto mt-2"
       >
-        <g><Timeline edges = {data.edges} spacing = {spacing}/></g>
-        <g><Bars edges = {data.edges} spacing = {spacing}/></g>
-        <g><rect  strokeWidth="2" x="200" y="35" height={chartHeight-10-30} width="200" stroke="#333" fill="transparent"></rect></g>
-        <g>{clickRegions}</g>        
-      </svg> 
-
+        <g>
+          <Timeline edges={data.edges} spacing={spacing} />
+        </g>
+        <g>
+          <Bars edges={data.edges} spacing={spacing} />
+        </g>
+        <g>
+          <rect
+            strokeWidth="2"
+            x="200"
+            y="35"
+            height={chartHeight - 10 - 30 - 5}
+            width="200"
+            stroke="grey"
+            fill="transparent"
+          />
+        </g>
+        <g>{clickRegions}</g>
+      </svg>
     </div>
   );
 }

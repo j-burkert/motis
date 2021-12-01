@@ -21,11 +21,11 @@ function TripDetails({ tripId }: TripDetailsProps): JSX.Element {
         tripId={tripId}
         onSectionClick={setSelectedSection}
       />
-      <TripLoadForecastChart
+      {/* <TripLoadForecastChart
         tripId={tripId}
         mode="Interactive"
         onSectionClick={setSelectedSection}
-      />
+      /> */}
       {selectedSection && (
         <TripSectionDetails
           tripId={tripId}
